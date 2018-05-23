@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>201803JS</title>
+</head>
+<body>
+
+</body>
+</html>
+<script src="../js/three.js"></script>
+<script>
+  //1.初始化场景
+  let scene=new THREE.Scene();
+  //2.初始化相机
+  let camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,1,1000);
+
+  //3.绘制几何体
+  let geometry=new THREE.CubeGeometry(4,2,4);
+  let material=new THREE.MeshLambertMaterial({color:0xbebebe});
+  let cube=new THREE.Mesh(geometry,material);
+  cube.position.set(0,5,0);
+  scene.add(cube);
+
+  //光照
+  let directionalLight=new THREE.DirectionalLight(0xffffff,1.1);
+  directionalLight.position.set(5,10,3);
+  scene.add(directionalLight);
+  //4.渲染器
+
+  let renderer=new THREE.WebGLRenderer();
+  renderer.setClearColor(0xffffff);
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  let x=10;
+  function render() {
+    x-=0.1;
+    camera.position.set(x,3,10);
+    renderer.render(scene,camera);
+    if(x>-10) requestAnimationFrame(render);
+  }
+  render()
+</script>
