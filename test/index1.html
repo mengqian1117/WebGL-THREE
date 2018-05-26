@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>201803JS</title>
+  <style>
+    html,body{
+      margin: 0;padding: 0;
+      width: 100%;height: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+</body>
+</html>
+<script src="../js/three.min.js"></script>
+<script>
+  //1.场景
+  let scene=new THREE.Scene();
+  //2.相机
+  let camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,1,1000);
+  camera.position.z=10;
+  camera.position.y=3;
+  camera.position.x=8;
+  //3.几何体
+  let geometry=new THREE.CubeGeometry(4,2,4);
+  let material=new THREE.MeshLambertMaterial({color:0xbebebe});
+  let cube=new THREE.Mesh(geometry,material);
+  cube.position.x=16;
+  scene.add(cube);
+  //光照
+  let directionalLight=new THREE.DirectionalLight(0xffffff,1.1);
+  directionalLight.position.set(3,10,5);
+  scene.add(directionalLight);
+  let light=new THREE.AmbientLight(0xffffff,0.4);
+  scene.add(light);
+  //4.渲染器
+  let renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setClearColor(0x282828);
+  renderer.render(scene,camera);
+  document.body.appendChild(renderer.domElement);
+
+  let x=8;
+  function render() {
+    x-=0.1;
+    camera.position.x=x;
+    renderer.render(scene,camera);
+    if(x>=-8){
+      requestAnimationFrame(render)
+    }
+  }
+  //render();
+</script>
