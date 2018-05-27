@@ -325,9 +325,11 @@ class Game {
   _restart(){
     this.cameraPros={current:new THREE.Vector3(0,0,0),next:new THREE.Vector3()};
     this.fallingStat={end:false,speed:0.2};
-    this.cubes.forEach(item=>this.scene.remove(item));
+    let length=this.cubes.length;
     this.scene.remove(this.jumper);
-    this.cubes=[];
+    for(let i=0;i<length;i++){
+      this.scene.remove(this.cubes.shift());
+    }
     this.score=0;
     this.successCallback(this.score);
     this._createCube();
