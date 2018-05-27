@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>201803JS</title>
+</head>
+<body>
+
+</body>
+</html>
+<script src="../js/three.min.js"></script>
+<script>
+  let scene=new THREE.Scene();
+  let camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,1,5000);
+  camera.position.z=6;
+  camera.position.y=2;
+  camera.position.x=8;
+  let geometry=new THREE.CubeGeometry(4,2,4);
+  let material=new THREE.MeshLambertMaterial({color:0xbebebe});
+  let cube=new THREE.Mesh(geometry,material);
+  scene.add(cube);
+  let directionalLight=new THREE.DirectionalLight(0xffffff,1.1);
+  directionalLight.position.set(3,10,5);
+  scene.add(directionalLight);
+  let renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setClearColor(0xffffff);
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+
+  let x=8;
+
+  function render() {
+    x-=0.1;
+    camera.position.x=x;
+    renderer.render(scene,camera);
+    if(x>-8){
+      requestAnimationFrame(render);
+    }
+  }
+  render();
+</script>
