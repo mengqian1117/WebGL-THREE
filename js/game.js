@@ -182,8 +182,8 @@ class Game {
   };
   _fallingDir(dir){
     let offset=this.falledStat.distance-this.config.cubeWidth/2;
-    let isRotate=true;
     let axis=dir.includes("left")?"z":'x';
+    let isRotate= this.jumper.rotation[axis] < Math.PI / 2;
     let rotate=this.jumper.rotation[axis];
     let fallingTo=this.config.ground+this.config.jumperWidth/2;
     if(dir=="leftTop"){
@@ -265,7 +265,6 @@ class Game {
       //更新镜头的位置
       this._updateCameraPros();
     }
-    console.log(this.cubes);
   };
   //创建jumper
   _createJumper(){
@@ -339,6 +338,7 @@ class Game {
     //重置某些值
     this.score=0;
     this.falledStat={location:-1,distance:0};
+    this.fallingStat={end:false,speed:0.2};
     this.cameraPros={current:new THREE.Vector3(0,0,0),next:new THREE.Vector3(0,0,0)};
     //删除场景中的几何体
     this.scene.remove(this.jumper);
