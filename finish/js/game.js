@@ -336,5 +336,5 @@ class Game {
     this._createCube();
     this._createJumper();
     this._updateCamera();
-  }
+  };
 }

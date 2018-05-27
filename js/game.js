@@ -36,13 +36,13 @@ class Game {
     }
   };
   init(){
-    this._addAxisHelp();
+    // this._addAxisHelp();
     this._setCamera();
     this._setRenderer();
     this._setLight();
     this._createCube();
     this._createCube();
-    this. _createJumper();
+    this._createJumper();
     this._updateCamera();
     this._handleWindowResize();
     window.addEventListener("resize",()=>{
@@ -54,8 +54,14 @@ class Game {
     });
     canvas.addEventListener("mouseup",()=>{
       this._handleMouseUp();
-    })
+    });
   };
+  _addSuccessFn(fn){
+    this.successCallback=fn;
+  };
+  _addFailedFn(fn){
+    this.failedCallback=fn;
+  }
   _addAxisHelp(){
     let axis=new THREE.AxisHelper(20);
     this.scene.add(axis);
@@ -71,7 +77,7 @@ class Game {
     this._render();
   };
   _handleMouseDown(){
-    if(!this.jumperStat.ready){
+    if(!this.jumperStat.ready&&this.jumper.scale.y>0.02){
       //y 压缩jumper
       this.jumper.scale.y-=0.01;
       this.jumperStat.xSpeed+=0.004;
@@ -103,13 +109,18 @@ class Game {
       this.jumperStat.ready=false;
       this.jumper.scale.y=1;
       this.jumper.position.y=1;
-      this.jumper.xSpeed=0;
-      this.jumper.ySpeed=0;
+      this.jumperStat.xSpeed=0;
+      this.jumperStat.ySpeed=0;
       //检测落在哪里了
       this._checkInCube();
       if(this.falledStat.location==1){
         //成功了
         this.score++;
+        this._createCube();
+        this._updateCamera();
+        if(this.successCallback){
+          this.successCallback(this.score);
+        }
       }else {
         //失败
         this._falling();
@@ -140,7 +151,6 @@ class Game {
       this.falledStat.location=0;
     }
   };
-
   _falling(){
     //-10,10,0
     //-10:从当前盒子落下  leftTop  rightTop
@@ -169,7 +179,7 @@ class Game {
     }else if(this.falledStat.location==0){
       this._fallingDir("none");
     }
-  }
+  };
   _fallingDir(dir){
     let offset=this.falledStat.distance-this.config.cubeWidth/2;
     let isRotate=true;
@@ -203,11 +213,15 @@ class Game {
       this._render();
       requestAnimationFrame(()=>{
         this._falling();
-      })
+      });
+    }else {
+      if(this.failedCallback){
+        this.failedCallback();
+      }
     }
 
 
-  }
+  };
 
   //设置相机位置
   _setCamera(){
@@ -231,12 +245,15 @@ class Game {
     if(this.cubes.length){
       //随机一个方向 Left  right
       this.cubeStat.nextDir=Math.random()>0.5?"left":"right";
+      cube.position.x=this.cubes[this.cubes.length-1].position.x;
+      cube.position.y=this.cubes[this.cubes.length-1].position.y;
+      cube.position.z=this.cubes[this.cubes.length-1].position.z;
       if(this.cubeStat.nextDir=="left"){
         //X
-        cube.position.x=this.cubes[this.cubes.length-1].position.x-Math.random()*4-6;
+        cube.position.x-=Math.random()*4+6;
       }else {
         //z
-        cube.position.z=this.cubes[this.cubes.length-1].position.z-Math.random()*4-6;
+        cube.position.z-=Math.random()*4+6;
       }
     }
     this.cubes.push(cube);
@@ -248,6 +265,7 @@ class Game {
       //更新镜头的位置
       this._updateCameraPros();
     }
+    console.log(this.cubes);
   };
   //创建jumper
   _createJumper(){
@@ -257,7 +275,8 @@ class Game {
     geometry.translate(0,1,0);
     this.jumper.position.y=1;
     this.scene.add(this.jumper);
-  }
+  };
+
   _updateCameraPros(){
     //计算出next
     //当前块和下一个块的中间位置
@@ -271,21 +290,27 @@ class Game {
       z:this.cubes[lastIndex].position.z,
     };
     this.cameraPros.next=new THREE.Vector3((pointA.x+pointB.x)/2,0,(pointA.z+pointB.z)/2);
-  }
+  };
   //改变相机的镜头
+
   _updateCamera(){
     if(this.cameraPros.current.x>this.cameraPros.next.x||this.cameraPros.current.z>this.cameraPros.next.z){
-     if(this.cubeStat.nextDir=="left"){
-       this.cameraPros.current.x-=0.1;
-     }else {
-       this.cameraPros.current.z-=0.1
-     }
-     this.camera.lookAt(this.cameraPros.current);
-     this._render();
-     requestAnimationFrame(()=>{
-       this._updateCamera();
-     })
+      if(this.cubeStat.nextDir=="left"){
+        this.cameraPros.current.x-=0.1;
+      }else {
+        this.cameraPros.current.z-=0.1;
+      }
+      if(this.cameraPros.current.x-this.cameraPros.next.x<0.05){
+        this.cameraPros.current.x=this.cameraPros.next.x;
+      }else if (this.cameraPros.current.z-this.cameraPros.next.z<0.05){
+        this.cameraPros.current.z=this.cameraPros.next.z;
+      }
    }
+    this.camera.lookAt(this.cameraPros.current);
+    this._render();
+    requestAnimationFrame(()=>{
+      this._updateCamera();
+    })
   }
 
   //设置灯光
@@ -308,5 +333,21 @@ class Game {
       width:window.innerWidth,
       height:window.innerHeight
     }
+  };
+
+  _restart(){
+    //重置某些值
+    this.score=0;
+    this.falledStat={location:-1,distance:0};
+    this.cameraPros={current:new THREE.Vector3(0,0,0),next:new THREE.Vector3(0,0,0)};
+    //删除场景中的几何体
+    this.scene.remove(this.jumper);
+    this.cubes.forEach(item=>this.scene.remove(item));
+    this.cubes=[];
+    //重新开始
+    this._createCube();
+    this._createCube();
+    this._createJumper();
+    this._updateCamera();
   }
 }
